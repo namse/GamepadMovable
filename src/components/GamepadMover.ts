@@ -63,11 +63,15 @@ export default class GamepadMover {
         }
         return this.isDescendantOf(target.parentElement, container);
     }
-    private findMovablesInFirstSameContainer(targetMovable: GamepadMovable, movables: GamepadMovable[]): GamepadMovable[] | null {
+    private findMovablesInFirstSameContainer(
+        targetMovable: GamepadMovable,
+        movables: GamepadMovable[],
+    ): GamepadMovable[] | null {
         let container = targetMovable.$refs.container.parentElement;
         while (container) {
-            const movablesInSameContainer = movables.filter((movable) => this.isDescendantOf(movable.$refs.container, container as HTMLElement));
-            if (movablesInSameContainer) {
+            const movablesInSameContainer = movables.filter((movable) =>
+                this.isDescendantOf(movable.$refs.container, container as HTMLElement));
+            if (movablesInSameContainer.length) {
                 return movablesInSameContainer;
             }
             container = container.parentElement;
@@ -81,7 +85,6 @@ export default class GamepadMover {
         const movablesOfBottom = GamepadMovable.allGamepadMovables.filter(movable => {
             return movable.top >= targetMovable.top + targetMovable.height;
         });
-        debugger;
 
         const movablesInSameFirstContainer = this.findMovablesInFirstSameContainer(targetMovable, movablesOfBottom);
         if (!movablesInSameFirstContainer) {
@@ -98,7 +101,8 @@ export default class GamepadMover {
         });
 
         const nextMovable = sortedByTop.find((movable) =>
-                movable.left + movable.width >= targetMovable.left && movable.left <= targetMovable.left + targetMovable.width)
+            movable.left + movable.width >= targetMovable.left
+            && movable.left <= targetMovable.left + targetMovable.width)
             || sortedByTop[0];
 
         return nextMovable;
