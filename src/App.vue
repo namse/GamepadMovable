@@ -1,11 +1,47 @@
 <template>
   <div id="app">
     <GamepadMovable>123</GamepadMovable>
+    <div class="flex-box">
+      <GamepadMovable>
+        <div>
+          i;m flex box
+        </div>
+      </GamepadMovable>
+      <GamepadMovable>
+        <div>
+          i;m flex box
+        </div>
+      </GamepadMovable>
+      <GamepadMovable>
+        <div>
+          i;m flex box
+        </div>
+      </GamepadMovable>
+      <GamepadMovable>
+        <div>
+          i;m flex box
+        </div>
+      </GamepadMovable>
+      <GamepadMovable>
+        <div>
+          i;m flex box
+        </div>
+      </GamepadMovable>
+      <GamepadMovable>
+        <div>
+          i;m flex box
+        </div>
+      </GamepadMovable>
+    </div>
     <GamepadMovable>123</GamepadMovable>
     <div class="scroll">
       <div class="content">
         <GamepadMovable>123</GamepadMovable>
-        <GamepadMovable>123</GamepadMovable>
+        <GamepadMovable>
+          <div>
+            123123
+          </div>
+        </GamepadMovable>
       </div>
       <GamepadMovable>123</GamepadMovable>
       <GamepadMovable>123</GamepadMovable>
@@ -56,13 +92,18 @@ export default class App extends Vue {
 
 <style>
 .scroll {
-    height: 250px;
-    width: 250px;
-    overflow: auto;
+  height: 250px;
+  width: 250px;
+  overflow: auto;
 }
 .content {
-    height: 800px;
-    width: 2000px;
-    background-color: coral;
+  height: 800px;
+  width: 2000px;
+  background-color: coral;
+}
+.flex-box {
+  width: 100px;
+  height: 100px;
+  display: flex;
 }
 </style>

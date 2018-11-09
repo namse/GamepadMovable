@@ -2,25 +2,41 @@ import GamepadEventListener from './GamepadEventListener';
 import { GamepadButtonEventType, GamepadButtonName } from './GamepadManager';
 import GamepadMovable from './GamepadMovable';
 
+export enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
 export default class GamepadMover {
     private gamepadEventListener: GamepadEventListener = new GamepadEventListener;
     private prevMovable: GamepadMovable | undefined;
     private currentMovable: GamepadMovable | undefined;
-    activate() {
+    public activate() {
         this.gamepadEventListener.onEventType(GamepadButtonEventType.ButtonDown, (event) => {
-            if (event.gamepadButtonName === GamepadButtonName.Down) {
-                this.moveDown();
-                return;
-            }
-            if (event.gamepadButtonName === GamepadButtonName.Up) {
-
+            switch (event.gamepadButtonName) {
+                case GamepadButtonName.Up:
+                    this.move(Direction.Up);
+                    return;
+                case GamepadButtonName.Right:
+                    this.move(Direction.Right);
+                    return;
+                case GamepadButtonName.Down:
+                    this.move(Direction.Down);
+                    return;
+                case GamepadButtonName.Left:
+                    this.move(Direction.Left);
+                    return;
+                default:
+                    return;
             }
         });
     }
-    deactivate() {
+    public deactivate() {
         this.gamepadEventListener.destroy();
     }
-    private moveTo(movable: GamepadMovable) {
+    private moveTo(movable: GamepadMovable) { // 이름 바꿔줘. 헷갈려
         if (this.prevMovable) {
             this.prevMovable.onLeave();
         }
@@ -28,7 +44,7 @@ export default class GamepadMover {
         movable.onEnter();
         this.prevMovable = movable;
     }
-    private moveDown() {
+    private move(direction: Direction) {
         // 현재 무버블을 기준으로
         // 아래로 이동합시다.
         // 이동 후 이벤트 전파합니다.
@@ -45,7 +61,7 @@ export default class GamepadMover {
             return;
         }
         // const nextMovable 을 찾아야 해
-        const nextMovable = this.findBelowGamepadMovable(this.currentMovable);
+        const nextMovable = this.findNextGamepadMovable(this.currentMovable, direction);
         if (!nextMovable) {
             console.log('cannot move down because im in last element');
             return;
@@ -81,30 +97,61 @@ export default class GamepadMover {
         return null;
     }
 
-    private findBelowGamepadMovable(targetMovable: GamepadMovable): GamepadMovable | null {
+    private findNextGamepadMovable(targetMovable: GamepadMovable, direction: Direction): GamepadMovable | null {
         GamepadMovable.calcMap();
-        const movablesOfBottom = GamepadMovable.allGamepadMovables.filter(movable => {
-            return movable.top >= targetMovable.top + targetMovable.height;
+        const movablesOverDirection = GamepadMovable.allGamepadMovables.filter(movable => {
+            switch (direction) {
+                case Direction.Up:
+                    return movable.top + movable.height <= targetMovable.top;
+                case Direction.Right:
+                    return movable.left >= targetMovable.left + targetMovable.width;
+                case Direction.Down:
+                    return movable.top >= targetMovable.top + targetMovable.height;
+                case Direction.Left:
+                    return movable.left + movable.width <= targetMovable.left;
+                default:
+                    throw new Error(`wrong direction ${direction}`);
+            }
         });
 
-        const movablesInSameFirstContainer = this.findMovablesInFirstSameContainer(targetMovable, movablesOfBottom);
+        const movablesInSameFirstContainer = this.findMovablesInFirstSameContainer(targetMovable, movablesOverDirection);
         if (!movablesInSameFirstContainer) {
             // 이런 경우는 movablesOfBottom가 비어있는 경우 말곤 없을텐데?
-            if (movablesOfBottom.length) {
+            if (movablesOverDirection.length) {
                 throw new Error('cannot find movablesInSameFirstContainer but movables of bottom exist!');
             }
             return null;
         }
 
-        const middle = (targetMovable.left + targetMovable.width) / 2;
-        const sortedByTop = movablesInSameFirstContainer.sort((a, b) => {
-            return a.top - b.top;
+        const sortedByDirection = movablesInSameFirstContainer.sort((a, b) => {
+            switch (direction) {
+                case Direction.Up:
+                    return b.top - a.top;
+                case Direction.Right:
+                    return a.left - b.left;
+                case Direction.Down:
+                    return a.top - b.top;
+                case Direction.Left:
+                    return b.left - a.left;
+                default:
+                    throw new Error(`wrong direction ${direction}`);
+            }
         });
 
-        const nextMovable = sortedByTop.find((movable) =>
-            movable.left + movable.width >= targetMovable.left
-            && movable.left <= targetMovable.left + targetMovable.width)
-            || sortedByTop[0];
+        const nextMovable = sortedByDirection.find((movable) => {
+            switch (direction) {
+                case Direction.Up:
+                case Direction.Down:
+                    return movable.left + movable.width >= targetMovable.left
+                        && movable.left <= targetMovable.left + targetMovable.width;
+                case Direction.Right:
+                case Direction.Left:
+                    return movable.top + movable.height >= targetMovable.top
+                        && movable.top <= targetMovable.top + targetMovable.height;
+                default:
+                    throw new Error(`wrong direction ${direction}`);
+            }
+        }) || sortedByDirection[0];
 
         return nextMovable;
     }
