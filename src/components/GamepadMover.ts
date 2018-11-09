@@ -24,6 +24,7 @@ export default class GamepadMover {
         if (this.prevMovable) {
             this.prevMovable.onLeave();
         }
+        this.scrollTo(movable);
         movable.onEnter();
         this.prevMovable = movable;
     }
@@ -106,5 +107,36 @@ export default class GamepadMover {
             || sortedByTop[0];
 
         return nextMovable;
+    }
+
+    private findScrollableParent(target: HTMLElement): HTMLElement | null {
+        const { parentElement } = target;
+        if (!parentElement) {
+            return null;
+        }
+        if (parentElement.scrollHeight !== parentElement.offsetHeight) {
+            return parentElement;
+        }
+        return this.findScrollableParent(parentElement);
+    }
+
+    private scrollTo(targetMovable: GamepadMovable) {
+        const { container } = targetMovable.$refs;
+        const { top } = container.getBoundingClientRect();
+
+        let scrollableParent = this.findScrollableParent(container);
+
+        while (scrollableParent) {
+            const {
+                top: parentTop,
+                height: parentHeight,
+            } = scrollableParent.getBoundingClientRect();
+
+            const nextScrollTop = scrollableParent.scrollTop - (parentTop + (parentHeight / 2) - top);
+            console.log(nextScrollTop);
+
+            scrollableParent.scrollTop = nextScrollTop;
+            scrollableParent = this.findScrollableParent(scrollableParent);
+        }
     }
 }
